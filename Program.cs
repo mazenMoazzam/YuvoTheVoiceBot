@@ -1,5 +1,3 @@
-
-
 using System;
 using System.Collections.Generic;
 using System.Speech.Recognition;
@@ -19,13 +17,13 @@ namespace StartingWithSpeechRecognition
 
             bool onYoutube = false;
 
-            string[] commands = { "hello",  "go to youtube" }; //list of commands using an array
+            string[] commands = { "hello",  "go to youtube", "go to calender" }; //list of commands using an array
             //of all the commands the user wants to do.
             foreach (var command in commands) //for each loop, going through each command.
             {
                 recognizedCommands[command] = false;
-                Grammar commandGrammar = new Grammar(new GrammarBuilder(command)); //Using the speech library, adds the grammer for the 
-                //the bot for the command. Set of commands for the recogizer and what commands to do.
+                Grammar commandGrammar = new Grammar(new GrammarBuilder(command)); //Using the speech library, adds the grammar for the
+                //the bot for the command. Set of commands for the recogizor and what commands to do.
                 recognizer.LoadGrammar(commandGrammar); //loads it to the bot.
             }
 
@@ -48,7 +46,7 @@ namespace StartingWithSpeechRecognition
             string command = e.Result.Text;
             if (recognizedCommands.ContainsKey(command) && !recognizedCommands[command])
             {
-                recognizedCommands[command] = true; // Mark the command as recognized
+                recognizedCommands[command] = true; //Mark the command as recognized
 
                 if (command == "hello")
                 {
@@ -60,6 +58,11 @@ namespace StartingWithSpeechRecognition
                     RespondWithSpeech("Going to Youtube!");
                     OpenYouTube();
 
+                }
+                else if (command == "go to calender")
+                {
+                    RespondWithSpeech("Going to your calender");
+                    openCalender();
                 }
                 else
                 {
@@ -82,6 +85,13 @@ namespace StartingWithSpeechRecognition
                 synthesizer.Speak(message);
             }
         }
+
+    static void openCalender()
+    {
+        Process.Start(new ProcessStartInfo{
+            FileName = "outlookcal:", UseShellExecute = true
+        });
+    }
 
         static void OpenYouTube() //This method  plays the youtube or goes to the youtube link.
         {
