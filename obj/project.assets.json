@@ -1372,6 +1372,7 @@
       "Google.Apis.YouTube.v3 >= 1.68.0.3421",
       "Google.Cloud.Speech.V1 >= 3.8.0",
       "NAudio >= 2.2.1",
+      "Newtonsoft.Json >= 13.0.3",
       "System.Speech >= 4.0.1"
     ]
   },
@@ -1428,6 +1429,10 @@
           "NAudio": {
             "target": "Package",
             "version": "[2.2.1, )"
+          },
+          "Newtonsoft.Json": {
+            "target": "Package",
+            "version": "[13.0.3, )"
           },
           "System.Speech": {
             "target": "Package",

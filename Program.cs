@@ -17,13 +17,13 @@ namespace StartingWithSpeechRecognition
 
             bool onYoutube = false;
 
-            string[] commands = { "hello",  "go to youtube", "go to calender" }; //list of commands using an array
+            string[] commands = { "hello",  "go to youtube", "go to calender", "search on youtube" }; //list of commands using an array
             //of all the commands the user wants to do.
             foreach (var command in commands) //for each loop, going through each command.
             {
                 recognizedCommands[command] = false;
                 Grammar commandGrammar = new Grammar(new GrammarBuilder(command)); //Using the speech library, adds the grammar for the
-                //the bot for the command. Set of commands for the recogizor and what commands to do.
+                //the bot for the command. Set of commands for the recognizer and what commands to do.
                 recognizer.LoadGrammar(commandGrammar); //loads it to the bot.
             }
 
@@ -41,12 +41,12 @@ namespace StartingWithSpeechRecognition
             recognizer.Dispose();
         }
 
-        static void Recognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        static async void Recognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
         {
             string command = e.Result.Text;
             if (recognizedCommands.ContainsKey(command) && !recognizedCommands[command])
             {
-                recognizedCommands[command] = true; //Mark the command as recognized
+                recognizedCommands[command] = true; 
 
                 if (command == "hello")
                 {
@@ -63,6 +63,33 @@ namespace StartingWithSpeechRecognition
                 {
                     RespondWithSpeech("Going to your calender");
                     openCalender();
+                }
+                else if (command.StartsWith("search on youtube"))
+                {
+                    string searchTerm = command.Substring("search on youtube".Length).Trim();
+                    if(!string.IsNullOrEmpty(searchTerm))
+                    {
+                        RespondWithSpeech($"Searching for {searchTerm} on Youtube.");
+                        string videoUrl = await YoutubeFeatures.Youtube.searchOnYoutube(searchTerm);
+                        if (videoUrl != null)
+                        {
+                            RespondWithSpeech("Found a video! Opening it now!");
+                            Process.Start(new ProcessStartInfo {
+                                FileName = videoUrl,
+                                UseShellExecute = true
+                            });
+                        }
+                        else
+                        {
+                            RespondWithSpeech("Sorry, I couldn't find any video for your search.");
+
+                        }
+                    }
+                    else
+                    {
+                        RespondWithSpeech("Please specify what video you want to search for.");
+                    }
+
                 }
                 else
                 {
