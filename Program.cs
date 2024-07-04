@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Speech.Recognition;
 using System.Speech.Synthesis;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace StartingWithSpeechRecognition
 {
@@ -11,20 +12,17 @@ namespace StartingWithSpeechRecognition
         static SpeechRecognitionEngine recognizer = null;
         static Dictionary<string, bool> recognizedCommands = new Dictionary<string, bool>();
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             recognizer = new SpeechRecognitionEngine();
 
-            bool onYoutube = false;
+            string[] commands = { "hello", "go to youtube", "go to calendar", "search on youtube", "goodbye" };
 
-            string[] commands = { "hello",  "go to youtube", "go to calender", "search on youtube" }; //list of commands using an array
-            //of all the commands the user wants to do.
-            foreach (var command in commands) //for each loop, going through each command.
+            foreach (var command in commands)
             {
                 recognizedCommands[command] = false;
-                Grammar commandGrammar = new Grammar(new GrammarBuilder(command)); //Using the speech library, adds the grammar for the
-                //the bot for the command. Set of commands for the recognizer and what commands to do.
-                recognizer.LoadGrammar(commandGrammar); //loads it to the bot.
+                Grammar commandGrammar = new Grammar(new GrammarBuilder(command));
+                recognizer.LoadGrammar(commandGrammar);
             }
 
             recognizer.SpeechRecognized += Recognizer_SpeechRecognized;
@@ -35,69 +33,101 @@ namespace StartingWithSpeechRecognition
 
             RespondWithSpeech("Hello there, my name is Botimus Prime!");
             Console.WriteLine("Say a command to the microphone and it will execute.");
-            Console.WriteLine("Press any key to exit");
-            Console.ReadKey();
+            Console.WriteLine("You can also type commands here. Say 'goodbye' to exit.");
+
+            bool running = true;
+
+            while (running)
+            {
+                string input = Console.ReadLine()?.ToLower();
+
+                if (input == "goodbye")
+                {
+                    running = false;
+                    break;
+                }
+                else
+                {
+                    if (recognizedCommands.ContainsKey(input))
+                    {
+                        ExecuteCommand(input);
+                    }
+                    else
+                    {
+                        RespondWithSpeech($"Command '{input}' not recognized. Please try again.");
+                    }
+                }
+            }
 
             recognizer.Dispose();
         }
 
         static async void Recognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
         {
-            string command = e.Result.Text;
+            string command = e.Result.Text.ToLower();
+
             if (recognizedCommands.ContainsKey(command) && !recognizedCommands[command])
             {
-                recognizedCommands[command] = true; 
+                recognizedCommands[command] = true;
+                ExecuteCommand(command);
+            }
+        }
 
-                if (command == "hello")
-                {
+        static void ExecuteCommand(string command)
+        {
+            switch (command)
+            {
+                case "hello":
                     RespondWithSpeech("Hello Mazen!");
                     RespondWithSpeech("How can I assist you?");
-                }
-                else if (command == "go to youtube")
-                {
+                    break;
+                case "go to youtube":
                     RespondWithSpeech("Going to Youtube!");
                     OpenYouTube();
-
-                }
-                else if (command == "go to calender")
-                {
-                    RespondWithSpeech("Going to your calender");
-                    openCalender();
-                }
-                else if (command.StartsWith("search on youtube"))
-                {
-                    string searchTerm = command.Substring("search on youtube".Length).Trim();
-                    if(!string.IsNullOrEmpty(searchTerm))
+                    break;
+                case "go to calendar":
+                    RespondWithSpeech("Going to your calendar");
+                    OpenCalendar();
+                    break;
+                case "search on youtube":
+                    RespondWithSpeech("What do you want to search on Youtube?");
+                    string searchTerm = Console.ReadLine();
+                    if (!string.IsNullOrEmpty(searchTerm))
                     {
                         RespondWithSpeech($"Searching for {searchTerm} on Youtube.");
-                        string videoUrl = await YoutubeFeatures.Youtube.searchOnYoutube(searchTerm);
-                        if (videoUrl != null)
+                        Task.Run(async () =>
                         {
-                            RespondWithSpeech("Found a video! Opening it now!");
-                            Process.Start(new ProcessStartInfo {
-                                FileName = videoUrl,
-                                UseShellExecute = true
-                            });
-                        }
-                        else
-                        {
-                            RespondWithSpeech("Sorry, I couldn't find any video for your search.");
-
-                        }
+                            string videoUrl = await YoutubeFeatures.Youtube.searchOnYoutube(searchTerm);
+                            if (videoUrl != null)
+                            {
+                                RespondWithSpeech("Found a video! Opening it now!");
+                                Process.Start(new ProcessStartInfo
+                                {
+                                    FileName = videoUrl,
+                                    UseShellExecute = true
+                                });
+                            }
+                            else
+                            {
+                                RespondWithSpeech("Sorry, I couldn't find any video for your search.");
+                            }
+                        }).Wait(); 
                     }
                     else
                     {
                         RespondWithSpeech("Please specify what video you want to search for.");
                     }
-
-                }
-                else
-                {
+                    break;
+                case "goodbye":
+                    RespondWithSpeech("Goodbye!");
+                    Environment.Exit(0);
+                    break;
+                default:
                     RespondWithSpeech($"Command '{command}' recognized!");
-                }
-
-                Console.WriteLine($"Recognized: '{command}'");
+                    break;
             }
+
+            Console.WriteLine($"Recognized: '{command}'");
         }
 
         static void Recognizer_SpeechRecognitionRejected(object sender, SpeechRecognitionRejectedEventArgs e)
@@ -113,14 +143,16 @@ namespace StartingWithSpeechRecognition
             }
         }
 
-    static void openCalender()
-    {
-        Process.Start(new ProcessStartInfo{
-            FileName = "outlookcal:", UseShellExecute = true
-        });
-    }
+        static void OpenCalendar()
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "outlookcal:",
+                UseShellExecute = true
+            });
+        }
 
-        static void OpenYouTube() //This method  plays the youtube or goes to the youtube link.
+        static void OpenYouTube()
         {
             Process.Start(new ProcessStartInfo
             {
@@ -130,4 +162,3 @@ namespace StartingWithSpeechRecognition
         }
     }
 }
-
