@@ -1,9 +1,12 @@
+
 using System;
 using System.Collections.Generic;
 using System.Speech.Recognition;
 using System.Speech.Synthesis;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Net.Http;
+using System.Net;
 
 namespace StartingWithSpeechRecognition
 {
@@ -16,7 +19,7 @@ namespace StartingWithSpeechRecognition
         {
             recognizer = new SpeechRecognitionEngine();
 
-            string[] commands = { "hello", "go to youtube", "go to calendar", "search on youtube", "goodbye" };
+            string[] commands = { "hello", "go to youtube", "go to calendar", "search on youtube", "pause", "play", "rewind", "forward", "goodbye" };
 
             foreach (var command in commands)
             {
@@ -33,12 +36,16 @@ namespace StartingWithSpeechRecognition
 
             RespondWithSpeech("Hello there, my name is Botimus Prime!");
             Console.WriteLine("Say a command to the microphone and it will execute.");
-            Console.WriteLine("You can also type commands here. Say 'goodbye' to exit.");
+            Console.WriteLine("Say 'goodbye' to exit.");
 
             bool running = true;
 
             while (running)
             {
+                while(!recognizedCommands.ContainsValue(true))
+                {
+                    await Task.Delay(10000000);
+                }
                 string input = Console.ReadLine()?.ToLower();
 
                 if (input == "goodbye")
@@ -73,7 +80,7 @@ namespace StartingWithSpeechRecognition
             }
         }
 
-        static void ExecuteCommand(string command)
+        static async void ExecuteCommand(string command)
         {
             switch (command)
             {
@@ -90,33 +97,42 @@ namespace StartingWithSpeechRecognition
                     OpenCalendar();
                     break;
                 case "search on youtube":
-                    RespondWithSpeech("What do you want to search on Youtube?");
-                    string searchTerm = Console.ReadLine();
+                    RespondWithSpeech("Please enter the search term for YouTube:");
+                    string searchTerm = Console.ReadLine()?.Trim();
                     if (!string.IsNullOrEmpty(searchTerm))
                     {
-                        RespondWithSpeech($"Searching for {searchTerm} on Youtube.");
-                        Task.Run(async () =>
+                        RespondWithSpeech($"Searching for {searchTerm} on YouTube.");
+                        string videoUrl = await YoutubeFeatures.Youtube.searchOnYoutube(searchTerm);
+                        if (!string.IsNullOrEmpty(videoUrl))
                         {
-                            string videoUrl = await YoutubeFeatures.Youtube.searchOnYoutube(searchTerm);
-                            if (videoUrl != null)
+                            RespondWithSpeech("Found a video! Opening it now!");
+                            Process.Start(new ProcessStartInfo
                             {
-                                RespondWithSpeech("Found a video! Opening it now!");
-                                Process.Start(new ProcessStartInfo
-                                {
-                                    FileName = videoUrl,
-                                    UseShellExecute = true
-                                });
-                            }
-                            else
-                            {
-                                RespondWithSpeech("Sorry, I couldn't find any video for your search.");
-                            }
-                        }).Wait(); 
+                                FileName = videoUrl,
+                                UseShellExecute = true
+                            });
+                        }
+                        else
+                        {
+                            RespondWithSpeech("Could not find video");
+                        }
                     }
                     else
                     {
-                        RespondWithSpeech("Please specify what video you want to search for.");
+                        RespondWithSpeech("Please specify the video");
                     }
+                    break;
+                case "pause":
+                    RespondWithSpeech("Pausing the video.");
+                    break;
+                case "play":
+                    RespondWithSpeech("Playing the video.");
+                    break;
+                case "rewind":
+                    RespondWithSpeech("Rewinding the video.");
+                    break;
+                case "forward":
+                    RespondWithSpeech("Forwarding the video.");
                     break;
                 case "goodbye":
                     RespondWithSpeech("Goodbye!");
@@ -160,5 +176,7 @@ namespace StartingWithSpeechRecognition
                 UseShellExecute = true
             });
         }
+
     }
 }
+
