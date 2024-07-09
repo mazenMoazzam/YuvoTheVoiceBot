@@ -13,3 +13,6 @@ video from the user, which then intializes an http object to send HTTP requests 
 
 NOTES: Work on Flask interactive API, integrate with bot by intializing an http server and send POST request to flask API. 
 
+UPDATE: Use YoutubeIFrame api to implement interactive API. Obtain video id of the current video the user is watching and implement JS functions to pause, play
+etc. accordingly. 
+
