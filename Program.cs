@@ -12,6 +12,7 @@ namespace StartingWithSpeechRecognition
 {
     class Program
     {
+        static HttpClient client = new HttpClient();
         static SpeechRecognitionEngine recognizer = null;
         static Dictionary<string, bool> recognizedCommands = new Dictionary<string, bool>();
 
@@ -44,7 +45,7 @@ namespace StartingWithSpeechRecognition
             {
                 while(!recognizedCommands.ContainsValue(true))
                 {
-                    await Task.Delay(10000000);
+                    await Task.Delay(1000000000);
                 }
                 string input = Console.ReadLine()?.ToLower();
 
@@ -124,6 +125,7 @@ namespace StartingWithSpeechRecognition
                     break;
                 case "pause":
                     RespondWithSpeech("Pausing the video.");
+                    await pauseVideo();
                     break;
                 case "play":
                     RespondWithSpeech("Playing the video.");
@@ -144,6 +146,19 @@ namespace StartingWithSpeechRecognition
             }
 
             Console.WriteLine($"Recognized: '{command}'");
+        }
+
+        static async Task pauseVideo()
+        {
+            try{
+                var response = await client.PostAsync("http://localhost:5000/pause", null);
+                response.EnsureSuccessStatusCode();
+                string responseBody = await response.Content.ReadAsStringAsync();
+            }
+            catch (HttpRequestException e)
+            {
+                Console.WriteLine($"Error: {e.Message}");
+            }
         }
 
         static void Recognizer_SpeechRecognitionRejected(object sender, SpeechRecognitionRejectedEventArgs e)
