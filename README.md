@@ -15,3 +15,5 @@ NOTES: Work on Flask interactive API, integrate with bot by intializing an http 
 
 UPDATE: Possibly need to use Winforms to implement the video interactor. 
 7/11/2024.
+
+Plan is to do this then implement reminder system. 
