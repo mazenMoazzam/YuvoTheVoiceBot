@@ -14,4 +14,4 @@ video from the user, which then intializes an http object to send HTTP requests 
 NOTES: Work on Flask interactive API, integrate with bot by intializing an http server and send POST request to flask API. 
 
 UPDATE: Possibly need to use Winforms to implement the video interactor. 
-
+7/11/2024
